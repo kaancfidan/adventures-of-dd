@@ -1,0 +1,59 @@
+{ "frames": [
+   {
+    "filename": "trampoline 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 140, "h": 135 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 31, "y": 65, "w": 140, "h": 135 },
+    "sourceSize": { "w": 200, "h": 200 },
+    "duration": 100
+   },
+   {
+    "filename": "trampoline 1.aseprite",
+    "frame": { "x": 140, "y": 0, "w": 140, "h": 135 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 31, "y": 65, "w": 140, "h": 135 },
+    "sourceSize": { "w": 200, "h": 200 },
+    "duration": 100
+   },
+   {
+    "filename": "trampoline 2.aseprite",
+    "frame": { "x": 280, "y": 0, "w": 140, "h": 135 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 31, "y": 65, "w": 140, "h": 135 },
+    "sourceSize": { "w": 200, "h": 200 },
+    "duration": 100
+   },
+   {
+    "filename": "trampoline 3.aseprite",
+    "frame": { "x": 420, "y": 0, "w": 140, "h": 135 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 31, "y": 65, "w": 140, "h": 135 },
+    "sourceSize": { "w": 200, "h": 200 },
+    "duration": 250
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.6-x64",
+  "image": "trampoline.png",
+  "format": "RGBA8888",
+  "size": { "w": 560, "h": 135 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 0, "direction": "forward", "color": "#000000ff" },
+   { "name": "down", "from": 1, "to": 1, "direction": "forward", "color": "#000000ff" },
+   { "name": "launch", "from": 2, "to": 3, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "legs", "opacity": 255, "blendMode": "normal", "cels": [{ "frame": 1, "zIndex": 1 }] },
+   { "name": "trampoline", "opacity": 255, "blendMode": "normal" },
+   { "name": "back poles", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

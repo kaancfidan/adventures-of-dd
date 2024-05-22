@@ -1,0 +1,50 @@
+{ "frames": [
+   {
+    "filename": "deniz 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 42, "h": 70 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 29, "y": 20, "w": 42, "h": 70 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 100
+   },
+   {
+    "filename": "deniz 1.aseprite",
+    "frame": { "x": 42, "y": 0, "w": 42, "h": 66 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 29, "y": 24, "w": 42, "h": 66 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 250
+   },
+   {
+    "filename": "deniz 2.aseprite",
+    "frame": { "x": 84, "y": 0, "w": 42, "h": 69 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 29, "y": 11, "w": 42, "h": 69 },
+    "sourceSize": { "w": 100, "h": 100 },
+    "duration": 250
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.6-x64",
+  "image": "deniz.png",
+  "format": "RGBA8888",
+  "size": { "w": 126, "h": 70 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 0, "direction": "forward", "color": "#000000ff" },
+   { "name": "crouch", "from": 1, "to": 1, "direction": "forward", "color": "#000000ff" },
+   { "name": "jump", "from": 2, "to": 2, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "legs", "opacity": 255, "blendMode": "normal" },
+   { "name": "head", "opacity": 255, "blendMode": "normal" },
+   { "name": "body", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

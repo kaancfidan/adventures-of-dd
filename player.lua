@@ -4,21 +4,21 @@ Player = {}
 Player.__index = Player
 
 function Player:new(x, y, width, height, animations)
-    local instance = setmetatable({}, Player)
-    instance.width = width
-    instance.height = height
+    local p = setmetatable({}, Player)
+    p.width = width
+    p.height = height
 
-    instance.animations = animations
-    instance.currAnimation = animations.idle
+    p.animations = animations
+    p.currAnimation = animations.idle
 
-    instance.collider = world:newRectangleCollider(x, y, width, height, {
+    p.collider = world:newRectangleCollider(x, y, width, height, {
         collision_class = "player"
     })
-    instance.collider:setFixedRotation(true)
+    p.collider:setFixedRotation(true)
 
-    instance.grounded = false
+    p.grounded = false
 
-    return instance
+    return p
 end
 
 function Player:update(dt)
@@ -46,7 +46,11 @@ end
 
 function Player:draw()
     local px, py = self.collider:getPosition()
-    self.currAnimation:draw(px, py)
+    self.currAnimation:draw(px - self.width / 2, py - self.height / 2)
+
+    if debug then
+        drawCoords(px, py)
+    end
 end
 
 function Player:keypressed(key)
@@ -73,6 +77,22 @@ Doga.__index = Doga
 function Doga:new(x, y, width, height)
     local sheet = love.graphics.newImage("assets/doga.png")
     local sheetJson = "assets/doga.json"
+
+    local animations = {
+        idle = peachy.new(sheetJson, sheet, "idle"),
+        crouch = peachy.new(sheetJson, sheet, "crouch"),
+        jump = peachy.new(sheetJson, sheet, "jump")
+    }
+
+    return Player:new(x, y, width, height, animations)
+end
+
+Deniz = setmetatable({}, {__index = Player})
+Deniz.__index = Deniz
+
+function Deniz:new(x, y, width, height)
+    local sheet = love.graphics.newImage("assets/deniz.png")
+    local sheetJson = "assets/deniz.json"
 
     local animations = {
         idle = peachy.new(sheetJson, sheet, "idle"),
