@@ -40,7 +40,7 @@ function Trampoline:drawBack()
 end
 
 function Trampoline:drawFront()
-    love.graphics.draw(self.frontSprite, self.x, self.y + 20, 0, 1, 1)
+    love.graphics.draw(self.frontSprite, self.x, self.y + 40, 0, 1, 1)
 end
 
 function Trampoline:update(dt)

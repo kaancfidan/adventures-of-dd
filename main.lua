@@ -14,7 +14,7 @@ function love.load()
 
     player = Doga:new(471, 400, 58, 97)
     -- player = Deniz:new(479, 400, 42, 70)
-    trampoline = Trampoline:new(430, 434, 140, 135, 76)
+    trampoline = Trampoline:new(430, 434, 280, 270, 152)
 
     love.mouse.isVisible = false
 end
