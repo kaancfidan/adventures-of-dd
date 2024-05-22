@@ -37,7 +37,7 @@ function Player:update(dt)
         self.currAnimation = self.animations.jump
     end
 
-    if self.grounded and dy == 0 and self.currAnimation == self.animations.jump then
+    if self.grounded and dy == 0 and self.currAnimation ~= self.animations.crouch then
         self.currAnimation = self.animations.idle
     end
 
@@ -58,8 +58,12 @@ function Player:keypressed(key)
 end
 
 function Player:keyreleased(key)
-    if key == "space" and self.grounded then
-        self.collider:applyLinearImpulse(0, -5000)
+    if key == "space" then        
+        if self.grounded and self.currAnimation == self.animations.crouch then
+            self.collider:applyLinearImpulse(0, -5000)
+        end
+
+        self.currAnimation = self.animations.idle
     end
 end
 
