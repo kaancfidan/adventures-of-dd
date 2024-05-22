@@ -28,6 +28,10 @@ function Player:new(x, y, width, height, density, animations, jumpKey, dir)
     return p
 end
 
+function Player:destroy()
+    self.collider:destroy()
+end
+
 function Player:isGrounded() 
     local colliders = world:queryRectangleArea(
         self.collider:getX() - self.width / 2,

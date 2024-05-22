@@ -14,8 +14,7 @@ function love.load()
     world:addCollisionClass('trampoline')
     world:addCollisionClass('player')
 
-    player1 = Doga:new(471, 400, "space")
-    player2 = Deniz:new(550, 400, "return", -1)
+    players = {}
     trampoline = Trampoline:new(360, 434, 280, 270, 152)
 
     love.mouse.setVisible(false)
@@ -27,8 +26,11 @@ function love.draw()
     love.graphics.setColor(1,1,1,1)
 
     trampoline:drawBack()
-    player1:draw()
-    player2:draw()
+
+    for _, p in pairs(players) do
+        p:draw(key)
+    end
+
     trampoline:drawFront()
 
     if debug then
@@ -41,14 +43,36 @@ end
 
 function love.update(dt)
     world:update(dt)
-    player1:update(dt)
-    player2:update(dt)
+
+    for _, p in pairs(players) do
+        p:update(dt)
+    end
+
     trampoline:update(dt)
 end
 
 function love.keypressed(key)
-    player1:keypressed(key)
-    player2:keypressed(key)
+    if key == '1' then 
+        if players.doga ~= nil then
+            players.doga:destroy()
+            players.doga = nil
+        else
+            players.doga = Doga:new(471, 400, "space")
+        end
+    end
+
+    if key == '2' then 
+        if players.deniz ~= nil then
+            players.deniz:destroy()
+            players.deniz = nil
+        else
+            players.deniz = Deniz:new(550, 400, "return", -1)
+        end
+    end
+
+    for _, p in pairs(players) do
+        p:keypressed(key)
+    end
 
     if key == '`' then
         debug = not debug
@@ -56,8 +80,9 @@ function love.keypressed(key)
 end
 
 function love.keyreleased(key)
-    player1:keyreleased(key)
-    player2:keyreleased(key)
+    for _, p in pairs(players) do
+        p:keyreleased(key)
+    end
 end
 
 function drawCoords(x, y)
