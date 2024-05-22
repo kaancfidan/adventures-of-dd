@@ -3,10 +3,13 @@ local peachy = require("lib/peachy/peachy")
 Player = {}
 Player.__index = Player
 
-function Player:new(x, y, width, height, animations)
+function Player:new(x, y, width, height, density, animations, jumpKey, dir)
     local p = setmetatable({}, Player)
     p.width = width
     p.height = height
+    p.dir = dir or 1
+
+    p.jumpKey = jumpKey
 
     p.animations = animations
     p.currAnimation = animations.idle
@@ -14,6 +17,10 @@ function Player:new(x, y, width, height, animations)
     p.collider = world:newRectangleCollider(x, y, width, height, {
         collision_class = "player"
     })
+
+    p.collider.fixture:setDensity(density)
+    p.collider.body:resetMassData()
+
     p.collider:setFixedRotation(true)
 
     p.grounded = false
@@ -21,23 +28,25 @@ function Player:new(x, y, width, height, animations)
     return p
 end
 
-function Player:update(dt)
-    local colliders = world:queryRectangleArea(self.collider:getX() - self.width / 2,
-        self.collider:getY() + self.height / 2, self.width, 2, {'trampoline'})
+function Player:isGrounded() 
+    local colliders = world:queryRectangleArea(
+        self.collider:getX() - self.width / 2,
+        self.collider:getY() + self.height / 2, 
+        self.width, 2, {'trampoline'})
 
-    if #colliders > 0 then
-        self.grounded = true
-    else
-        self.grounded = false
-    end
+    return #colliders > 0
+end
+
+function Player:update(dt)
+    self.grounded = self:isGrounded()
 
     local _, dy = self.collider:getLinearVelocity()
 
-    if self.grounded == false and dy < 0 then
+    if self.grounded == false and self.currAnimation == self.animations.idle and dy < 0 then
         self.currAnimation = self.animations.jump
     end
 
-    if self.grounded and dy == 0 and self.currAnimation ~= self.animations.crouch then
+    if self.grounded and dy >= 0 and self.currAnimation ~= self.animations.crouch then
         self.currAnimation = self.animations.idle
     end
 
@@ -46,7 +55,7 @@ end
 
 function Player:draw()
     local px, py = self.collider:getPosition()
-    self.currAnimation:draw(px - self.width / 2, py - self.height / 2)
+    self.currAnimation:draw(px - self.dir * self.width / 2, py - self.height / 2, 0, self.dir)
 
     if debug then
         drawCoords(px, py)
@@ -56,15 +65,16 @@ end
 function Player:keypressed(key)
     local _, dy = self.collider:getLinearVelocity()
 
-    if key == "space" and dy >= 0 then
+    if key == self.jumpKey then
         self.currAnimation = self.animations.crouch
     end
 end
 
 function Player:keyreleased(key)
-    if key == "space" then        
+    if key == self.jumpKey then        
         if self.grounded and self.currAnimation == self.animations.crouch then
-            self.collider:applyLinearImpulse(0, -5000)
+            local _, dy = self.collider:getLinearVelocity()
+            self.collider:applyLinearImpulse(0, math.min(-5000, 40*dy))
         end
 
         self.currAnimation = self.animations.idle
@@ -74,7 +84,7 @@ end
 Doga = setmetatable({}, {__index = Player})
 Doga.__index = Doga
 
-function Doga:new(x, y, width, height)
+function Doga:new(x, y, jumpKey, dir)
     local sheet = love.graphics.newImage("assets/doga.png")
     local sheetJson = "assets/doga.json"
 
@@ -84,13 +94,16 @@ function Doga:new(x, y, width, height)
         jump = peachy.new(sheetJson, sheet, "jump")
     }
 
-    return Player:new(x, y, width, height, animations)
+    local width, height = 58, 97
+    local density = 1
+
+    return Player:new(x - width/2, y - height/2, width, height, density, animations, jumpKey, dir)
 end
 
 Deniz = setmetatable({}, {__index = Player})
 Deniz.__index = Deniz
 
-function Deniz:new(x, y, width, height)
+function Deniz:new(x, y, jumpKey, dir)
     local sheet = love.graphics.newImage("assets/deniz.png")
     local sheetJson = "assets/deniz.json"
 
@@ -100,5 +113,8 @@ function Deniz:new(x, y, width, height)
         jump = peachy.new(sheetJson, sheet, "jump")
     }
 
-    return Player:new(x, y, width, height, animations)
+    local width, height = 42, 70
+    local density = 2.5
+
+    return Player:new(x - width/2, y - height/2, width, height, density, animations, jumpKey, dir)
 end
