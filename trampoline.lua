@@ -15,7 +15,7 @@ function Trampoline:new(x, y, width, height, matOffset)
         collision_class = "trampoline"
     })
 
-    t.stopper = world:newRectangleCollider(x, y + matOffset + 50, width, 20, {
+    t.stopper = world:newRectangleCollider(x, y + matOffset + 80, width, 20, {
         collision_class = "trampoline"
     })
 

@@ -78,7 +78,7 @@ function Player:keyreleased(key)
     if key == self.jumpKey then        
         if self.grounded and self.currAnimation == self.animations.crouch then
             local _, dy = self.collider:getLinearVelocity()
-            self.collider:applyLinearImpulse(0, math.min(-5000, 40*dy))
+            self.collider:applyLinearImpulse(0, math.min(-5000, -0.15*dy*dy))
         end
 
         self.currAnimation = self.animations.idle
