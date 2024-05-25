@@ -1,35 +1,65 @@
 local peachy = require("lib/peachy/peachy")
+local gamera = require("lib/gamera/gamera")
 
 Player = {}
 Player.__index = Player
 
-function Player:new(x, y, width, height, density, animations, jumpKey, dir)
+function Player:new(id, slot)
     local p = setmetatable({}, Player)
-    p.width = width
-    p.height = height
-    p.dir = dir or 1
+    p.id = id
+    p.slot = slot
 
-    p.jumpKey = jumpKey
+    local sheet = love.graphics.newImage(string.format("assets/%s.png", id))
+    local sheetJson = string.format("assets/%s.json", id)
 
-    p.animations = animations
-    p.currAnimation = animations.idle
+    p.animations = {
+        idle = peachy.new(sheetJson, sheet, "idle"),
+        crouch = peachy.new(sheetJson, sheet, "crouch"),
+        jump = peachy.new(sheetJson, sheet, "jump")
+    }
 
-    p.collider = world:newRectangleCollider(x, y, width, height, {
-        collision_class = "player"
-    })
+    p.width = p.animations.idle:getWidth()
+    p.height = p.animations.idle:getHeight()
 
-    p.collider.fixture:setDensity(density)
-    p.collider.body:resetMassData()
+    p.density = 5000 / (p.width * p.height)
 
-    p.collider:setFixedRotation(true)
+    p:init()
 
-    p.grounded = false
+    p.camera = gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     return p
 end
 
+function Player:init()
+    self.currAnimation = self.animations.idle
+    self.grounded = false
+
+    if self.collider then
+        self.collider:destroy()
+    end
+
+    self.collider = world:newRectangleCollider(
+        self.slot.x - self.width/2,
+        self.slot.y - self.height/2,
+        self.width, 
+        self.height, 
+        { collision_class = "player" })
+
+    self.collider.fixture:setDensity(self.density)
+    self.collider.body:resetMassData()
+
+    self.collider:setFixedRotation(true)
+
+    if self.trampoline then
+        self.trampoline:destroy()
+    end
+
+    self.trampoline = Trampoline:new(self.slot.x + self.slot.dir * 100, 434, 280, 270, 152)
+end
+
 function Player:destroy()
     self.collider:destroy()
+    self.trampoline:destroy()
 end
 
 function Player:isGrounded() 
@@ -42,14 +72,18 @@ function Player:isGrounded()
 end
 
 function Player:update(dt)
+    self.trampoline:update(dt)
+
     self.grounded = self:isGrounded()
 
     local _, dy = self.collider:getLinearVelocity()
 
+    -- switch animation to jump if airborne
     if self.grounded == false and self.currAnimation == self.animations.idle and dy < 0 then
         self.currAnimation = self.animations.jump
     end
 
+    -- switch animation to idle if idling on the ground
     if self.grounded and dy >= 0 and self.currAnimation ~= self.animations.crouch then
         self.currAnimation = self.animations.idle
     end
@@ -58,8 +92,12 @@ function Player:update(dt)
 end
 
 function Player:draw()
+    self.trampoline:drawBack()
+
     local px, py = self.collider:getPosition()
-    self.currAnimation:draw(px - self.dir * self.width / 2, py - self.height / 2, 0, self.dir)
+    self.currAnimation:draw(px - self.slot.dir * self.width / 2, py - self.height / 2, 0, self.slot.dir)
+
+    self.trampoline:drawFront()
 
     if debug then
         drawCoords(px, py)
@@ -67,58 +105,50 @@ function Player:draw()
 end
 
 function Player:keypressed(key)
-    local _, dy = self.collider:getLinearVelocity()
-
-    if key == self.jumpKey then
+    if key == self.slot.jumpKey then
         self.currAnimation = self.animations.crouch
     end
 end
 
 function Player:keyreleased(key)
-    if key == self.jumpKey then        
+    if key == self.slot.jumpKey then        
         if self.grounded and self.currAnimation == self.animations.crouch then
             local _, dy = self.collider:getLinearVelocity()
-            self.collider:applyLinearImpulse(0, math.min(-5000, -0.15*dy*dy))
+            self.collider:applyLinearImpulse(0, math.min(-5000, -0.2*dy*dy))
         end
 
         self.currAnimation = self.animations.idle
     end
 end
 
+PlayerSlot = {}
+PlayerSlot.__index = PlayerSlot
+
+function PlayerSlot:new(order, jumpKey)
+    local s = setmetatable({}, PlayerSlot)
+    s.order = order
+    s.jumpKey = jumpKey
+
+    -- dummy values to be filled
+    s.x = 0
+    s.y = 0
+    s.dir = 1
+
+    return s
+end
+
 Doga = setmetatable({}, {__index = Player})
 Doga.__index = Doga
+Doga.id = 'doga'
 
-function Doga:new(x, y, jumpKey, dir)
-    local sheet = love.graphics.newImage("assets/doga.png")
-    local sheetJson = "assets/doga.json"
-
-    local animations = {
-        idle = peachy.new(sheetJson, sheet, "idle"),
-        crouch = peachy.new(sheetJson, sheet, "crouch"),
-        jump = peachy.new(sheetJson, sheet, "jump")
-    }
-
-    local width, height = 58, 97
-    local density = 1
-
-    return Player:new(x - width/2, y - height/2, width, height, density, animations, jumpKey, dir)
+function Doga:new(slot)
+    return Player:new(Doga.id, slot)
 end
 
 Deniz = setmetatable({}, {__index = Player})
 Deniz.__index = Deniz
+Deniz.id = 'deniz'
 
-function Deniz:new(x, y, jumpKey, dir)
-    local sheet = love.graphics.newImage("assets/deniz.png")
-    local sheetJson = "assets/deniz.json"
-
-    local animations = {
-        idle = peachy.new(sheetJson, sheet, "idle"),
-        crouch = peachy.new(sheetJson, sheet, "crouch"),
-        jump = peachy.new(sheetJson, sheet, "jump")
-    }
-
-    local width, height = 42, 70
-    local density = 2.5
-
-    return Player:new(x - width/2, y - height/2, width, height, density, animations, jumpKey, dir)
+function Deniz:new(slot)
+    return Player:new(Deniz.id, slot)
 end

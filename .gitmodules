@@ -4,3 +4,6 @@
 [submodule "lib/peachy"]
 	path = lib/peachy
 	url = https://github.com/josh-perry/peachy
+[submodule "lib/gamera"]
+	path = lib/gamera
+	url = https://github.com/kikito/gamera

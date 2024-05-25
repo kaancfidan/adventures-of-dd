@@ -1,41 +1,54 @@
 require "player"
 require "trampoline"
+require "background"
 
 function love.load()
     love.window.setMode(1024, 768)
-
-    love.graphics.setBackgroundColor(0.53,0.80,0.92,1)
+    love.graphics.setDefaultFilter('nearest', 'nearest')
 
     local wf = require("lib/windfield/windfield")
 
     world = wf.newWorld(0, 981)
-    world:setQueryDebugDrawing(true)
 
     world:addCollisionClass('trampoline')
     world:addCollisionClass('player')
 
+    playerOptions = {
+        Doga,
+        Deniz
+    }
+
+    playerSlots = { 
+        PlayerSlot:new(3, 'tab'),
+        PlayerSlot:new(2, 'return'),
+        PlayerSlot:new(1, 'space') 
+    }
+
+    numPlayers = 0
     players = {}
-    trampoline = Trampoline:new(360, 434, 280, 270, 152)
 
     love.mouse.setVisible(false)
+    bg = Background:new()
 end
 
-function love.draw()
-    love.graphics.setColor(0.25,0.59,0.04,1)
-    love.graphics.rectangle('fill',0, 500, 1024, 300)
-    love.graphics.setColor(1,1,1,1)
-
-    trampoline:drawBack()
+function drawEverything(camX, camY, camW, camH)
+    bg:draw()
 
     for _, p in pairs(players) do
-        p:draw(key)
+        p:draw()
     end
-
-    trampoline:drawFront()
 
     if debug then
         world:draw()
+    end
+end
 
+function love.draw()
+    for _, p in pairs(players) do
+        p.camera:draw(drawEverything)
+    end
+
+    if debug then
         local mx, my = love.mouse.getPosition()
         drawCrosshair(mx, my)
     end
@@ -48,40 +61,82 @@ function love.update(dt)
         p:update(dt)
     end
 
-    trampoline:update(dt)
+    world:setQueryDebugDrawing(debug)
 end
 
 function love.keypressed(key)
-    if key == '1' then 
-        if players.doga ~= nil then
-            players.doga:destroy()
-            players.doga = nil
-        else
-            players.doga = Doga:new(471, 400, "space")
-        end
-    end
-
-    if key == '2' then 
-        if players.deniz ~= nil then
-            players.deniz:destroy()
-            players.deniz = nil
-        else
-            players.deniz = Deniz:new(550, 400, "return", -1)
-        end
-    end
-
-    for _, p in pairs(players) do
-        p:keypressed(key)
+    if key >= '1' and key <= '9'  then
+        changePlayers(key)
+        return
     end
 
     if key == '`' then
         debug = not debug
+        return
+    end
+
+    for _, p in pairs(players) do
+        p:keypressed(key)
     end
 end
 
 function love.keyreleased(key)
     for _, p in pairs(players) do
         p:keyreleased(key)
+    end
+end
+
+function changePlayers(key)
+    local num = tonumber(key)
+
+    if num > #playerOptions then
+        return
+    end
+
+    local chosen = playerOptions[num]
+
+    if players[chosen.id] ~= nil then
+        local player = players[chosen.id]
+        table.insert(playerSlots, player.slot)
+
+        -- just so that the first available slot is always the left-most one
+        table.sort(playerSlots, function(a, b)
+            return a.x > b.x
+        end)
+
+        player:destroy()
+        players[chosen.id] = nil
+
+        numPlayers = numPlayers - 1
+    else
+        local slot = table.remove(playerSlots)
+        local player = playerOptions[num]:new(slot)
+
+        players[player.id] = player
+
+        numPlayers = numPlayers + 1
+    end
+
+    redistributePlayers()
+end
+
+function redistributePlayers()
+    if numPlayers == 0 then
+        return
+    end
+
+    local coords = {}
+    local step = love.graphics:getWidth() / (numPlayers + 1)
+
+    for i = 1, numPlayers do
+        table.insert(coords, i * step)
+    end
+
+    for _, p in pairs(players) do
+        p.slot.x = coords[p.slot.order]
+        p.slot.y = 500
+        p.slot.dir = (p.order == 1) and 1 or -1
+        p:init()
     end
 end
 
