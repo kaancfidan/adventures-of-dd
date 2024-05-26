@@ -24,7 +24,6 @@ function love.load()
         PlayerSlot:new(1, 'space') 
     }
 
-    numPlayers = 0
     players = {}
 
     love.mouse.setVisible(false)
@@ -44,9 +43,15 @@ function drawEverything(camX, camY, camW, camH)
 end
 
 function love.draw()
-    for _, p in pairs(players) do
-        p.camera:draw(drawEverything)
-    end
+    local activeSlots = getActiveSlots()
+    
+    if #activeSlots == 0 then
+        bg:draw()
+    else
+        for _, p in pairs(players) do
+            p.camera:draw(drawEverything)
+        end
+    end    
 
     if debug then
         local mx, my = love.mouse.getPosition()
@@ -101,43 +106,54 @@ function changePlayers(key)
 
         -- just so that the first available slot is always the left-most one
         table.sort(playerSlots, function(a, b)
-            return a.x > b.x
+            return a.order > b.order
         end)
 
         player:destroy()
         players[chosen.id] = nil
-
-        numPlayers = numPlayers - 1
     else
         local slot = table.remove(playerSlots)
         local player = playerOptions[num]:new(slot)
 
         players[player.id] = player
-
-        numPlayers = numPlayers + 1
     end
 
     redistributePlayers()
 end
 
 function redistributePlayers()
-    if numPlayers == 0 then
+    local activeSlots = getActiveSlots()
+
+    if #activeSlots == 0 then
         return
     end
 
-    local coords = {}
-    local step = love.graphics:getWidth() / (numPlayers + 1)
+    table.sort(activeSlots, function(a, b)
+        return a.order > b.order
+    end)
 
-    for i = 1, numPlayers do
+    local maxOrder = activeSlots[1].order
+
+    local coords = {}
+    local step = love.graphics:getWidth() / (maxOrder + 1)
+
+    for i = 1, maxOrder do
         table.insert(coords, i * step)
     end
 
     for _, p in pairs(players) do
         p.slot.x = coords[p.slot.order]
-        p.slot.y = 500
-        p.slot.dir = (p.order == 1) and 1 or -1
+        p.slot.dir = (p.slot.order == 1) and 1 or -1
         p:init()
     end
+end
+
+function getActiveSlots()
+    local activeSlots = {}
+    for _, p in pairs(players) do
+        table.insert(activeSlots, p.slot)
+    end
+    return activeSlots
 end
 
 function drawCoords(x, y)

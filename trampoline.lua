@@ -21,13 +21,13 @@ function Trampoline:new(x, y)
 
     t.width = t.animations.idle:getWidth()
     t.height = t.animations.idle:getHeight()
-    t.matOffset = 0.563 * t.height -- jumping mat distance to trampoline top
+    t.matOffset = 150
 
-    t.collider = world:newRectangleCollider(x, y + t.matOffset, t.width, 20, {
+    t.collider = world:newRectangleCollider(x - t.width / 2, y, t.width, 10, {
         collision_class = "trampoline"
     })
 
-    t.stopper = world:newRectangleCollider(x, y + t.matOffset + 80, t.width, 20, {
+    t.stopper = world:newRectangleCollider(x - t.width / 2, y + 80, t.width, 10, {
         collision_class = "trampoline"
     })
 
@@ -42,10 +42,11 @@ end
 
 function Trampoline:destroy()
     self.collider:destroy()
+    self.stopper:destroy()
 end
 
 function Trampoline:drawBack()
-    self.currAnimation:draw(self.x, self.y)
+    self.currAnimation:draw(self.x, self.y, 0, 1, 1, self.width / 2, self.matOffset)
 
     if debug then
         drawCoords(self.x, self.y)
@@ -53,21 +54,21 @@ function Trampoline:drawBack()
 end
 
 function Trampoline:drawFront()
-    love.graphics.draw(self.frontSprite, self.x, self.y + 40, 0, 1, 1)
+    love.graphics.draw(self.frontSprite, self.x, self.y, 0, 1, 1, self.width / 2, self.matOffset - 40)
 end
 
 function Trampoline:update(dt)
     local px, py = self.collider:getPosition()
     local _, dy = self.collider:getLinearVelocity()
 
-    local fspring = -2000*(py-(self.y+self.matOffset))
-    local fdamper = -150*math.max(0, dy)
+    local fspring = -2500*(py-self.y)
+    local fdamper = -200*math.max(0, dy)
 
     self.collider:applyForce(0, fspring+fdamper)
 
-    if py > self.y+self.matOffset+20 then
+    if py > self.y + 10 then
         self.currAnimation = self.animations.down
-    elseif py < self.y+self.matOffset and dy < 0 then
+    elseif py < self.y - 2 and dy < 0 then
         self.currAnimation = self.animations.launch
     else
         self.currAnimation = self.animations.idle
