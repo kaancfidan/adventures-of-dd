@@ -156,11 +156,13 @@ function getActiveSlots()
     return activeSlots
 end
 
-function drawCoords(x, y)
+function drawCoords(x, y, size)
+    size = size or 10
+
     love.graphics.setColor(1,0,0,1)
-    love.graphics.line(x, y, x + 10, y)
+    love.graphics.line(x, y, x + size, y)
     love.graphics.setColor(0,1,0,1)
-    love.graphics.line(x, y, x, y + 10)
+    love.graphics.line(x, y, x, y + size)
     love.graphics.setColor(1,1,1,1)
 end
 

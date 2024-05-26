@@ -59,12 +59,15 @@ end
 
 function Trampoline:update(dt)
     local px, py = self.collider:getPosition()
-    local _, dy = self.collider:getLinearVelocity()
+    local dx, dy = self.collider:getLinearVelocity()
 
-    local fspring = -2500*(py-self.y)
-    local fdamper = -200*math.max(0, dy)
+    local fsx = 1000*(self.x - px)
+    local fdx = -100*dx
 
-    self.collider:applyForce(0, fspring+fdamper)
+    local fsy = 2500*(self.y - py)
+    local fdy = -200*math.max(0, dy)
+
+    self.collider:applyForce(fsx+fdx, fsy+fdy)
 
     if py > self.y + 10 then
         self.currAnimation = self.animations.down

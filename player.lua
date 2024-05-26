@@ -4,9 +4,10 @@ local gamera = require("lib/gamera/gamera")
 Player = {}
 Player.__index = Player
 
-function Player:new(id, slot)
+function Player:new(id, density, slot)
     local p = setmetatable({}, Player)
     p.id = id
+    p.density = density
     p.slot = slot
 
     local sheet = love.graphics.newImage(string.format("assets/%s.png", id))
@@ -20,7 +21,6 @@ function Player:new(id, slot)
 
     p.width = p.animations.idle:getWidth()
     p.height = p.animations.idle:getHeight()
-    p.density = 12000 / (p.width * p.height)
 
     p.camera = gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
@@ -36,8 +36,8 @@ function Player:init()
     end
 
     self.collider = world:newRectangleCollider(
-        self.slot.x - self.width/2,
-        500 - self.height/2,
+        self.slot.x - self.width/2 - self.slot.dir * 50,
+        self.slot.y - self.height/2,
         self.width, 
         self.height, 
         { collision_class = "player" })
@@ -51,7 +51,7 @@ function Player:init()
         self.trampoline:destroy()
     end
 
-    self.trampoline = Trampoline:new(self.slot.x, 600)
+    self.trampoline = Trampoline:new(self.slot.x, self.slot.y + 100)
 end
 
 function Player:destroy()
@@ -73,10 +73,14 @@ function Player:update(dt)
 
     self.grounded = self:isGrounded()
 
-    local _, dy = self.collider:getLinearVelocity()
+    local px, _ = self.collider:getPosition()
+    local dx, dy = self.collider:getLinearVelocity()
+
+    -- apply air drag in horizontal direction
+    self.collider:applyForce(-5*dx, 0)
 
     -- switch animation to jump if airborne
-    if self.grounded == false and self.currAnimation == self.animations.idle and dy < 0 then
+    if not self.grounded and self.currAnimation == self.animations.idle and dy < 0 then
         self.currAnimation = self.animations.jump
     end
 
@@ -92,12 +96,13 @@ function Player:draw()
     self.trampoline:drawBack()
 
     local px, py = self.collider:getPosition()
-    self.currAnimation:draw(px - self.slot.dir * self.width / 2, py - self.height / 2, 0, self.slot.dir)
+    self.currAnimation:draw(px, py, 0, self.slot.dir, 1, self.width/2,  self.height/2)
 
     self.trampoline:drawFront()
 
     if debug then
         drawCoords(px, py)
+        drawCoords(self.slot.x, self.slot.y, 30)
     end
 end
 
@@ -110,8 +115,12 @@ end
 function Player:keyreleased(key)
     if key == self.slot.jumpKey then        
         if self.grounded and self.currAnimation == self.animations.crouch then
+            local px, _ = self.collider:getPosition()
             local _, dy = self.collider:getLinearVelocity()
-            self.collider:applyLinearImpulse(0, math.min(-6000, -0.2*dy*dy))
+
+            local xOffsetDir = (self.slot.x - px) > 0 and 1 or -1
+
+            self.collider:applyLinearImpulse(500*math.random()*xOffsetDir, math.min(-5000, -0.15*dy*dy))
         end
 
         self.currAnimation = self.animations.idle
@@ -125,6 +134,7 @@ function PlayerSlot:new(order, jumpKey)
     local s = setmetatable({}, PlayerSlot)
     s.order = order
     s.jumpKey = jumpKey
+    s.y = 500
 
     -- dummy values to be filled
     s.x = 0
@@ -138,7 +148,7 @@ Doga.__index = Doga
 Doga.id = 'doga'
 
 function Doga:new(slot)
-    return Player:new(Doga.id, slot)
+    return Player:new(Doga.id, 1, slot)
 end
 
 Deniz = setmetatable({}, {__index = Player})
@@ -146,5 +156,5 @@ Deniz.__index = Deniz
 Deniz.id = 'deniz'
 
 function Deniz:new(slot)
-    return Player:new(Deniz.id, slot)
+    return Player:new(Deniz.id, 2.633, slot)
 end
