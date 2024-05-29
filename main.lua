@@ -2,9 +2,11 @@ require "player"
 require "trampoline"
 require "background"
 
+local gr = love.graphics
+
 function love.load()
-    love.window.setMode(1024, 768)
-    love.graphics.setDefaultFilter('nearest', 'nearest')
+    love.window.setFullscreen(true)
+    gr.setDefaultFilter('nearest', 'nearest')
 
     local wf = require("lib/windfield/windfield")
 
@@ -13,16 +15,9 @@ function love.load()
     world:addCollisionClass('trampoline')
     world:addCollisionClass('player')
 
-    playerOptions = {
-        Doga,
-        Deniz
-    }
+    playerOptions = {Doga, Deniz, Robin}
 
-    playerSlots = { 
-        PlayerSlot:new(3, 'tab'),
-        PlayerSlot:new(2, 'return'),
-        PlayerSlot:new(1, 'space') 
-    }
+    playerSlots = {PlayerSlot:new(3, 'tab'), PlayerSlot:new(2, 'return'), PlayerSlot:new(1, 'space')}
 
     players = {}
 
@@ -44,14 +39,14 @@ end
 
 function love.draw()
     local activeSlots = getActiveSlots()
-    
+
     if #activeSlots == 0 then
         bg:draw()
     else
         for _, p in pairs(players) do
             p.camera:draw(drawEverything)
         end
-    end    
+    end
 
     if debug then
         local mx, my = love.mouse.getPosition()
@@ -70,7 +65,7 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-    if key >= '1' and key <= '9'  then
+    if key >= '1' and key <= '9' then
         changePlayers(key)
         return
     end
@@ -135,7 +130,7 @@ function redistributePlayers()
     local maxOrder = activeSlots[1].order
 
     local coords = {}
-    local step = love.graphics:getWidth() / (maxOrder + 1)
+    local step = gr:getWidth() / (maxOrder + 1)
 
     for i = 1, maxOrder do
         table.insert(coords, i * step)
@@ -159,14 +154,30 @@ end
 function drawCoords(x, y, size)
     size = size or 10
 
-    love.graphics.setColor(1,0,0,1)
-    love.graphics.line(x, y, x + size, y)
-    love.graphics.setColor(0,1,0,1)
-    love.graphics.line(x, y, x, y + size)
-    love.graphics.setColor(1,1,1,1)
+    gr.setColor(1, 0, 0, 1)
+    gr.line(x, y, x + size, y)
+    gr.setColor(0, 1, 0, 1)
+    gr.line(x, y, x, y + size)
+    gr.setColor(1, 1, 1, 1)
 end
 
 function drawCrosshair(x, y)
-    love.graphics.line(0, y, 1024, y)
-    love.graphics.line(x, 0, x, 768)
+    gr.line(0, y, 1024, y)
+    gr.line(x, 0, x, 768)
+end
+
+function dashLine(p1, p2, dash, gap)
+    local dy, dx = p2.y - p1.y, p2.x - p1.x
+    local an, st = math.atan2(dy, dx), dash + gap
+    local len = math.sqrt(dx * dx + dy * dy)
+    local nm = (len - dash) / st
+    
+    gr.push()
+        gr.translate(p1.x, p1.y)
+        gr.rotate(an)
+        for i = 0, nm do
+            gr.line(i * st, 0, i * st + dash, 0)
+        end
+        gr.line(nm * st, 0, nm * st + dash, 0)
+    gr.pop()
 end

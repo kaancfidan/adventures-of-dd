@@ -24,6 +24,10 @@ function Player:new(id, density, slot)
 
     p.camera = gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
+    p.holdCounter = 0
+
+    p.best = 0
+
     return p
 end
 
@@ -73,7 +77,7 @@ function Player:update(dt)
 
     self.grounded = self:isGrounded()
 
-    local px, _ = self.collider:getPosition()
+    local px, py = self.collider:getPosition()
     local dx, dy = self.collider:getLinearVelocity()
 
     -- apply air drag in horizontal direction
@@ -89,6 +93,15 @@ function Player:update(dt)
         self.currAnimation = self.animations.idle
     end
 
+    if self.currAnimation == self.animations.crouch then
+        self.holdCounter = self.holdCounter + 2*dt
+        self.holdCounter = math.min(self.holdCounter, 1)
+    else
+        self.holdCounter = 0
+    end
+
+    self.best = math.max(self.best, self.trampoline.y - py + self.height / 2)
+
     self.currAnimation:update(dt)
 end
 
@@ -99,6 +112,17 @@ function Player:draw()
     self.currAnimation:draw(px, py, 0, self.slot.dir, 1, self.width/2,  self.height/2)
 
     self.trampoline:drawFront()
+
+    dashLine(
+        {
+            x=self.slot.x - self.trampoline.width / 2,
+            y=self.trampoline.y - self.best
+        },
+        {
+            x=self.slot.x + self.trampoline.width / 2,
+            y=self.trampoline.y - self.best
+        }, 
+        8, 8)
 
     if debug then
         drawCoords(px, py)
@@ -120,7 +144,7 @@ function Player:keyreleased(key)
 
             local xOffsetDir = (self.slot.x - px) > 0 and 1 or -1
 
-            self.collider:applyLinearImpulse(500*math.random()*xOffsetDir, math.min(-5000, -0.15*dy*dy))
+            self.collider:applyLinearImpulse(self.holdCounter*500*math.random()*xOffsetDir, math.min(self.holdCounter*-5000, self.holdCounter*-0.15*dy*dy))
         end
 
         self.currAnimation = self.animations.idle
@@ -156,5 +180,13 @@ Deniz.__index = Deniz
 Deniz.id = 'deniz'
 
 function Deniz:new(slot)
-    return Player:new(Deniz.id, 2.633, slot)
+    return Player:new(Deniz.id, 2.2, slot)
+end
+
+Robin = setmetatable({}, {__index = Player})
+Robin.__index = Robin
+Robin.id = 'robin'
+
+function Robin:new(slot)
+    return Player:new(Robin.id, 1.5, slot)
 end
