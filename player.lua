@@ -158,7 +158,7 @@ function PlayerSlot:new(order, jumpKey)
     local s = setmetatable({}, PlayerSlot)
     s.order = order
     s.jumpKey = jumpKey
-    s.y = 500
+    s.y = 720
 
     -- dummy values to be filled
     s.x = 0
